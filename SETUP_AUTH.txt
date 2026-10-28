@@ -1,0 +1,29 @@
+ANG CRIC DOSE — EMAIL + PHONE LOGIN SETUP
+
+Important: login cannot be activated until a Firebase project is created and its web configuration is added. Do not share passwords, OTPs, service-account keys, or private credentials with anyone.
+
+1) In Firebase Console, create a project and add a Web App.
+2) Copy the web app config values into firebase-config.js. This web config is public app configuration, not a password or service-account key. Never put a service-account private key in the website.
+3) Firebase Console > Authentication > Sign-in method: enable Email/Password and Phone.
+4) Authentication > Settings > Authorized domains: add the actual domain where ANG Cric Dose will be hosted. Phone OTP requires reCAPTCHA and may have provider/billing/region requirements.
+5) Firestore Database: create a database.
+6) Firestore Rules: use owner-only access for profiles and reading history. Example starting rules:
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /userProfiles/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      match /readingHistory/{historyId} {
+        allow read, create, delete: if request.auth != null && request.auth.uid == userId;
+        allow update: if false;
+      }
+    }
+  }
+}
+
+7) Upload index.html, admin.html, assets/, and firebase-config.js together to the same hosting folder/origin. A local file:// open is not a valid production test for phone auth; test on an authorized HTTPS domain.
+
+The integration includes email/password sign-up and sign-in, email verification, password reset, phone OTP/reCAPTCHA, and a basic safe-profile write. Passwords are handled by Firebase Authentication and are not stored in the Cric Dose app database. Authenticated clicks on article/match cards are recorded as content IDs/titles/timestamps under that user's readingHistory subcollection. Review privacy policy/consent and test rules before public launch.
+
+Scorecard note: audience scorecard uses a Google-cricket-inspired layout with two innings tabs, sticky first column, batting/bowling tables, and touch swipe. The existing prototype's data model may only contain current-innings data; the second innings tab shows full stats only when admin scoring stores innings2/scorecards[1] data. Do not treat this as a verified production scorecard until both innings are tested end-to-end.
